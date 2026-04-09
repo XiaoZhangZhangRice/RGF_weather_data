@@ -1,0 +1,117 @@
+---
+title: "Prevailing wind directions"
+output: html_document
+date: "2026-04-09"
+---
+
+# Necessary libraries
+
+```{r message=FALSE,warning=FALSE}
+library(knitr)
+library(ggplot2)
+theme_set(theme_bw())
+library(emmeans)
+library(multcomp)
+library(PLS205)
+library(lme4)
+library(lmerTest)
+library(multcompView)
+library(car)
+library(Rmisc) 
+library(dplyr) #https://r4ds.had.co.nz/ (Chapter 3, Chapter 5, look at filter and select)
+# https://bookdown.org/ansellbr/WEHI_tidyR_course_book/
+library(stringr) 
+library(data.table)
+library(GGally)
+library(formatR)
+library(readxl)
+library(FluxCalR)
+library(tidyverse)
+library(fuzzyjoin)
+library(purrr)
+library(data.table)
+library(broom)
+library(lubridate)
+library(readxl)
+library(openxlsx)
+library(ggrepel)
+library(gridExtra)
+
+```
+
+# load data for verona
+
+```{r}
+verona <- read.csv("../Data/hourly_verona.csv")
+verona <- verona %>%
+  mutate(
+    Date = as.Date(Date, format = "%m/%d/%Y"),
+    Datetime = as.POSIXct(
+      paste(Date, Hour..PST.),
+      format = "%Y-%m-%d %H",
+      tz = "America/Los_Angeles"
+    )
+  )
+
+str(verona)
+
+verona_july <- verona %>%
+  filter(Date >= as.Date("2025-07-01") &
+         Date <  as.Date("2025-08-01"))
+```
+
+# load data for woodland
+
+```{r}
+woodland <- read.csv("../Data/hourly_woodland.csv")
+
+woodland <- woodland %>%
+  mutate(
+    Date = as.Date(Date, format = "%m/%d/%Y"),
+    Datetime = as.POSIXct(
+      paste(Date, Hour..PST.),
+      format = "%Y-%m-%d %H",
+      tz = "America/Los_Angeles"
+    )
+  )
+
+str(woodland)
+
+woodland_july <- woodland %>%
+  filter(Date >= as.Date("2025-07-01") &
+         Date <  as.Date("2025-08-01"))
+```
+# Get a raw mean 
+
+```{r}
+verona_mean_wind_dir <- mean(verona$Wind.Dir..0.360.,, na.rm = TRUE)
+verona_mean_wind_dir
+
+woodland_mean_wind_dir <- mean(woodland$Wind.Dir..0.360.,, na.rm = TRUE)
+woodland_mean_wind_dir
+```
+
+# visualise
+
+```{r}
+woodland_july_graph <- ggplot(woodland_july, aes(x = Datetime, y =  Wind.Dir..0.360.))+
+  geom_point()+
+  geom_smooth()+
+  ggtitle("woodland")
+
+woodland_july_graph
+
+ggsave(woodland_july_graph, filename = "../Figures/woodland_july_graph.jpg", height = 25, width = 25, units = "cm", dpi=400)
+
+
+verona_july_graph <- ggplot(verona_july, aes(x = Datetime, y =  Wind.Dir..0.360.))+
+  geom_point()+
+  geom_smooth()+
+  ggtitle("verona")
+
+verona_july_graph
+
+ggsave(verona_july_graph, filename = "../Figures/verona_july_graph.jpg", height = 25, width = 25, units = "cm", dpi=400)
+
+```
+
